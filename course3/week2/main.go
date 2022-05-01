@@ -5,24 +5,34 @@ import (
 	"time"
 )
 
+// This is an example of race condition
+// 2 goroutines tries to read&write sharedInt and there is no access control.
+
+var sharedInt int = 0
+var unusedValue int = 0
+
+func runSimpleReader() {
+	for {
+		var val int = sharedInt
+		if val%10 == 0 {
+			unusedValue = unusedValue + 1
+		}
+		fmt.Println(unusedValue)
+	}
+
+}
+
+func runSimpleWriter() {
+	for {
+		sharedInt = sharedInt + 1
+		fmt.Println(sharedInt)
+	}
+}
+
 func main() {
-	c := make(chan int)
-	c <- 10
-	fmt.Println(c)
-	x := 0
-	go func() {
-		x++
-	}()
-
-	//time.Sleep(1 * time.Second)
-	y := <-c
-	fmt.Println(y)
-	go func() {
-		fmt.Println(x)
-	}()
-
-	time.Sleep(1 * time.Second)
-
+	go runSimpleReader()
+	go runSimpleWriter()
+	time.Sleep(10 * time.Second)
 }
 
 /*
